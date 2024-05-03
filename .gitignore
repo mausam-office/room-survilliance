@@ -1,0 +1,7 @@
+*.zip
+*.tar
+*.pyc
+
+image_od*
+venv/
+virtualenv/
