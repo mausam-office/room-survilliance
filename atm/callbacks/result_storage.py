@@ -11,6 +11,6 @@ class SetResultCallback:
                 POSE_LANDMARKS_NAMES[idx]:lm 
                 for idx, lm in enumerate(result.pose_landmarks.landmark)
             }
-        else:
-            landmarks = {}
-        self.q.put(landmarks)
+        # else:
+        #     landmarks = {}
+            self.q.put(landmarks)
