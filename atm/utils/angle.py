@@ -31,8 +31,8 @@ def calculate_angle(p1, p2, p3=None):
 	try:  
 		angle_radian = np.arctan2(p3.y-p2.y, p3.x-p2.x) - np.arctan2(p1.y-p2.y, p1.x-p2.x)
 		angle_degree = np.abs(angle_radian * 180.0 / np.pi)
-		if angle_degree > 180.0:
-			angle_degree = 360.0 - angle_degree
+		# if angle_degree > 180.0:
+		# 	angle_degree = 360.0 - angle_degree
 	except Exception as e:
 		exit()
 	return (angle_degree, p3)
