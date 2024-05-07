@@ -1,3 +1,4 @@
+from utils.overlay import GeometricShapes
 from mediapipe.framework.formats.landmark_pb2 import NormalizedLandmarkList # type: ignore
 
 
@@ -10,6 +11,8 @@ class Postprocess:
             result = q.get()
 
             reconstructed_landmarks = self.dict_to_landmark(result)
+
+            image = GeometricShapes().plot(image, reconstructed_landmarks)
 
     def dict_to_landmark(self, result):
         landmarks = []
