@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 from multiprocessing import Queue
+import time
 
 from callbacks.image_storage import SetImageCallback
 from callbacks.result_storage import SetResultCallback
@@ -24,9 +25,9 @@ def main():
             if image_callback.image is not None:
                 detect(image_callback.image)
                 
+                pp.process(image_callback.image, q)
+
                 image_callback.image = None
-                
-                pp.process(q)
     except KeyboardInterrupt as e:
         cam.release()
         
