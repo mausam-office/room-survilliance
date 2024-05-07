@@ -44,16 +44,15 @@ class FreshestFrame(threading.Thread):
 
 	def release(self, timeout=10):
 		self.running = False
-		self.join(timeout=timeout)
 		self.capture.release()
-		# exit()
+		super().join()
 
 	def run(self):
 		counter = 0
 		while self.running:
 			# block for fresh frame
 			(rv, img) = self.capture.read()
-			assert rv
+			assert rv, exit()
 			counter += 1
 
 			# publish the frame
