@@ -5,9 +5,9 @@ from dataclasses import dataclass
 
 @dataclass
 class DetectionConfigs:
-    MP_DRAWING = mp.solutions.drawing_utils
-    MP_DRAWING_STYLES = mp.solutions.drawing_styles
-    MP_POSE = mp.solutions.pose
+    MP_DRAWING = mp.solutions.drawing_utils # type: ignore
+    MP_DRAWING_STYLES = mp.solutions.drawing_styles # type: ignore
+    MP_POSE = mp.solutions.pose # type: ignore
 
 
 class Detection:
