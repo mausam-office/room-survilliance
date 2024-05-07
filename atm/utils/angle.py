@@ -8,6 +8,7 @@ from mediapipe.framework.formats.landmark_pb2 import NormalizedLandmark # type: 
 class Point:
 	x = 0
 	y = 0
+	visibility = 0.0
 
 def calculate_angle(p1, p2, p3=None):
 	"""
@@ -27,6 +28,7 @@ def calculate_angle(p1, p2, p3=None):
 		p3 = Point()
 		p3.x = p2.x
 		p3.y = 0
+		p3.visibility = 1.0
 
 	try:  
 		angle_radian = np.arctan2(p3.y-p2.y, p3.x-p2.x) - np.arctan2(p1.y-p2.y, p1.x-p2.x)
