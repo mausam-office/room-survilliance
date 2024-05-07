@@ -1,4 +1,4 @@
-from utils import POSE_LANDMARKS_NAMES
+# from utils import POSE_LANDMARKS_NAMES
 
 
 class SetResultCallback:
@@ -8,7 +8,8 @@ class SetResultCallback:
     def set_result(self, result):
         if result.pose_landmarks is not None:
             landmarks = {
-                POSE_LANDMARKS_NAMES[idx]:lm 
+                # POSE_LANDMARKS_NAMES[idx]:lm 
+                idx:lm 
                 for idx, lm in enumerate(result.pose_landmarks.landmark)
             }
         # else:
