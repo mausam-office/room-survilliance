@@ -1,13 +1,26 @@
+from mediapipe.framework.formats.landmark_pb2 import NormalizedLandmarkList # type: ignore
 
 
 class Postprocess:
     def __init__(self, q) -> None:
         self.q = q
-        super().__init__()
 
-    def process(self, q):
+    def process(self, image, q):
         if q.qsize():
-            # print("From postprocess thread: ", self.q.qsize())
-            data = q.get()
-            # print('----'*10)
-            # TODO apply conditions based on distance calculation
+            result = q.get()
+
+            reconstructed_landmarks = self.dict_to_landmark(result)
+
+    def dict_to_landmark(self, result):
+        landmarks = []
+        if not isinstance(result, dict):
+            return
+        for k in range(33):
+            r = result[k]
+            # nl = NormalizedLandmark(x=r.x, y=r.y, z=r.z)
+            landmarks.append({"x":r.x, "y":r.y, "z":r.y, "visibility":r.visibility})
+        
+        return NormalizedLandmarkList(landmark=landmarks)
+    
+    
+
