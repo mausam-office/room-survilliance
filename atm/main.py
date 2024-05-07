@@ -18,20 +18,17 @@ def main():
     cam = FreshestFrame(camera=0, callback=image_callback.set_image)
     detect = Detection(result_callback.set_result)
 
+    pp = Postprocess(q)
     try:
-        pp = Postprocess(q)
         while True:
             if image_callback.image is not None:
                 detect(image_callback.image)
                 
                 image_callback.image = None
-                # landmarks = result_callback.result.pose_landmarks
-                # pp(result_callback)
+                
+                pp.process(q)
     except KeyboardInterrupt as e:
-        pp.stop()
-        
         cam.release()
-        cam.join()
         
 
 if __name__ == "__main__":
