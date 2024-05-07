@@ -16,13 +16,13 @@ def main():
     result_callback = SetResultCallback(q)
     
     cam = FreshestFrame(camera=0, callback=image_callback.set_image)
-    d = Detection(result_callback.set_result)
+    detect = Detection(result_callback.set_result)
 
     try:
         pp = Postprocess(q)
         while True:
             if image_callback.image is not None:
-                d(image_callback.image)
+                detect(image_callback.image)
                 
                 image_callback.image = None
                 # landmarks = result_callback.result.pose_landmarks
