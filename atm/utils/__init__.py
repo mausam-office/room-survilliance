@@ -1,7 +1,10 @@
 from ctypes.wintypes import LANGID
-from pathlib import Path
 import re
 import yaml
+import mediapipe as mp
+                    
+from dataclasses import dataclass
+from pathlib import Path
 
 
 FILE = Path(__file__).resolve()
@@ -40,6 +43,9 @@ def yaml_load(file, initial=False):
 PATHS_DICT = yaml_load(PATHS, initial=True)
 POSE_LANDMARKS_NAMES = yaml_load(PATHS_DICT['landmarks'])['pose']
 
-                    
-
+@dataclass
+class DetectionConfigs:
+    MP_DRAWING = mp.solutions.drawing_utils # type: ignore
+    MP_DRAWING_STYLES = mp.solutions.drawing_styles # type: ignore
+    MP_POSE = mp.solutions.pose # type: ignore
 

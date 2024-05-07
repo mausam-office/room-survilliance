@@ -1,13 +1,5 @@
 from typing import Any
-import mediapipe as mp
-
-from dataclasses import dataclass
-
-@dataclass
-class DetectionConfigs:
-    MP_DRAWING = mp.solutions.drawing_utils # type: ignore
-    MP_DRAWING_STYLES = mp.solutions.drawing_styles # type: ignore
-    MP_POSE = mp.solutions.pose # type: ignore
+from utils import DetectionConfigs
 
 
 class Detection:
