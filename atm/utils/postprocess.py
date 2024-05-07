@@ -1,23 +1,13 @@
-from threading import Thread
 
 
-class Postprocess(Thread):
+class Postprocess:
     def __init__(self, q) -> None:
         self.q = q
         super().__init__()
-        self.start()
 
-    def start(self):
-        self.running = True
-        super().start()
-
-    def stop(self):
-        self.running = False
-        super().join()
-
-    def run(self):
-        while self.running:
-            if self.q.qsize():
-                data = self.q.get()
-                print(data)
-                print('----'*10)
+    def process(self, q):
+        if q.qsize():
+            # print("From postprocess thread: ", self.q.qsize())
+            data = q.get()
+            # print('----'*10)
+            # TODO apply conditions based on distance calculation
