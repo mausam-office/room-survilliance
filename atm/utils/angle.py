@@ -10,7 +10,7 @@ class Point:
 	y = 0
 	visibility = 0.0
 
-def calculate_angle(p1, p2, p3=None):
+def calculate_angle(w, h, p1, p2, p3=None):
 	"""
 	Calculates the angle between the lines.
 	Args:
@@ -35,6 +35,8 @@ def calculate_angle(p1, p2, p3=None):
 		angle_degree = np.abs(angle_radian * 180.0 / np.pi)
 		# if angle_degree > 180.0:
 		# 	angle_degree = 360.0 - angle_degree
+		angle1 = np.arctan2(int(p1.y*h) - int(p2.y*h), int(p1.x*w) - int(p2.x*w)) * 180 / np.pi
+		angle2 = np.arctan2(int(p3.y*h) - int(p2.y*h),  int(p3.x*w) - int(p2.x*w)) * 180 / np.pi
 	except Exception as e:
-		exit()
-	return (angle_degree, p3)
+		raise e
+	return (angle_degree, angle1, angle2)

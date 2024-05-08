@@ -1,3 +1,4 @@
+from utils.display import show_image
 from utils.overlay import GeometricShapes
 from mediapipe.framework.formats.landmark_pb2 import NormalizedLandmarkList # type: ignore
 
@@ -12,7 +13,9 @@ class Postprocess:
 
             reconstructed_landmarks = self.dict_to_landmark(result)
 
-            image = GeometricShapes().plot(image, reconstructed_landmarks)
+            image = GeometricShapes().plot(image, reconstructed_landmarks, [(16, 14, 12), (15, 13)])
+
+            show_image(image)
 
     def dict_to_landmark(self, result):
         landmarks = []
@@ -24,6 +27,9 @@ class Postprocess:
             landmarks.append({"x":r.x, "y":r.y, "z":r.y, "visibility":r.visibility})
         
         return NormalizedLandmarkList(landmark=landmarks)
+    
+    
+
     
     
 
