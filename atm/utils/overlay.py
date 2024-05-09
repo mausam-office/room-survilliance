@@ -24,7 +24,6 @@ class GeometricShapes:
             raise TypeError(f"Expecting numpy array.")
         
         img_shape = self.image_shape(image)
-        # print(img_shape)
         
         if (ndim := len(img_shape)) != 3:
             raise ValueError(f"Expecting 3-D numpy array.")
@@ -42,8 +41,6 @@ class GeometricShapes:
             arc_angle1 = info['arc_angle1']
             arc_angle2 = info['arc_angle2']
             plot_vertical_line = info['plot_vertical_line']
-
-            print(f"{angle=}, {arc_angle1=}, {arc_angle2=}")
 
             if 'angle' not in self.ignore:
                 image = self.__plot_angle(image, center, angle)
