@@ -2,8 +2,6 @@ import logging
 import cv2
 import numpy as np
 from utils import DetectionConfigs
-# from atm.rules import rules
-from utils.angle import calculate_angle
 
 
 class GeometricShapes:
@@ -14,13 +12,6 @@ class GeometricShapes:
     """
     def __init__(self, ignore: list|tuple = []) -> None:
         self.ignore = ignore
-
-    # def init_rules(self):
-    #     self.sitted_rule = rules.SittedRule()
-    #     self.hand_contracted_rule = rules.HandContractRule()
-        
-    #     self.rule = rules.RuleExecuter()
-
 
     def plot(self, image, landmarks, lm_plot_info=[], *args, **kwargs):
         """
@@ -33,7 +24,7 @@ class GeometricShapes:
             raise TypeError(f"Expecting numpy array.")
         
         img_shape = self.image_shape(image)
-        print(img_shape)
+        # print(img_shape)
         
         if (ndim := len(img_shape)) != 3:
             raise ValueError(f"Expecting 3-D numpy array.")
@@ -51,6 +42,8 @@ class GeometricShapes:
             arc_angle1 = info['arc_angle1']
             arc_angle2 = info['arc_angle2']
             plot_vertical_line = info['plot_vertical_line']
+
+            print(f"{angle=}, {arc_angle1=}, {arc_angle2=}")
 
             if 'angle' not in self.ignore:
                 image = self.__plot_angle(image, center, angle)
@@ -75,7 +68,7 @@ class GeometricShapes:
     
     def __plot_angle_arc(self, image, center, arc_angle1, arc_angle2):
         return cv2.ellipse(
-            image, center, (23, 23), 0, arc_angle1, arc_angle2, (255, 0, 0), thickness=2
+            image, center, (15, 15), 0, arc_angle1, arc_angle2, (255, 0, 0), thickness=2
         )
     
     def __plot_angle(self, image, center, angle):
