@@ -10,7 +10,7 @@ class Point:
 	y = 0
 	visibility = 0.0
 
-def calculate_angle(w, h, p1, p2, p3=None):
+def calculate_angle(w, h, vertex_pnt_idx, p1, p2, p3=None):
 	"""
 	Calculates the angle between the lines.
 	Args:
@@ -31,12 +31,24 @@ def calculate_angle(w, h, p1, p2, p3=None):
 		p3.visibility = 1.0
 
 	try:  
-		angle_radian = np.arctan2(p3.y-p2.y, p3.x-p2.x) - np.arctan2(p1.y-p2.y, p1.x-p2.x)
-		angle_degree = np.abs(angle_radian * 180.0 / np.pi)
+		# angle_radian = np.arctan2(p3.y-p2.y, p3.x-p2.x) - np.arctan2(p1.y-p2.y, p1.x-p2.x)
+		# angle_degree = np.abs(angle_radian * 180.0 / np.pi)
 		# if angle_degree > 180.0:
 		# 	angle_degree = 360.0 - angle_degree
-		angle1 = np.arctan2(int(p1.y*h) - int(p2.y*h), int(p1.x*w) - int(p2.x*w)) * 180 / np.pi
-		angle2 = np.arctan2(int(p3.y*h) - int(p2.y*h),  int(p3.x*w) - int(p2.x*w)) * 180 / np.pi
+		start_angle = np.arctan2(int(p1.y*h) - int(p2.y*h), int(p1.x*w) - int(p2.x*w)) * 180 / np.pi
+		end_angle = np.arctan2(int(p3.y*h) - int(p2.y*h),  int(p3.x*w) - int(p2.x*w)) * 180 / np.pi
+
+		if vertex_pnt_idx % 2 == 0:
+			'Even points greater than 12 are at right below neck'
+			# arc_angle1 = arc_angle1 if arc_angle1<0 else arc_angle1-360
+			# angle = angle if arc_angle1<-90 and arc_angle1>-180 else 360-angle
+			if end_angle < start_angle:
+				start_angle -= 360
+		else:
+			if end_angle > start_angle:
+				end_angle -= 360
+		angle_degree = abs(start_angle-end_angle)
+
 	except Exception as e:
 		raise e
-	return (angle_degree, angle1, angle2)
+	return (angle_degree, start_angle, end_angle)

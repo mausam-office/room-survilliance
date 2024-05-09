@@ -17,19 +17,22 @@ class Postprocess:
             h, w, _ = image.shape
             lm_plot_info = []
             for tripoints in lm_idx_list:
-                if not isinstance(tripoints, (tuple, list, set)) and not len(tripoints) in [2, 3]:
+                if not isinstance(tripoints, (tuple, list)) and not len(tripoints) in [2, 3]:
                     continue
-                
+
+                tripoints, action = tripoints[:-1], tripoints[-1]
+                vertex_pnt_idx = tripoints[1]
+
                 points = [reconstructed_landmarks.landmark[point_idx] for point_idx in tripoints]
                 
-                angle, arc_angle1, arc_angle2 = calculate_angle(w, h, *points)
+                angle, arc_angle1, arc_angle2 = calculate_angle(w, h, vertex_pnt_idx, *points)
                 x_c, y_c = int(points[1].x*w), int(points[1].y*h)
 
                 plot_vertical_line = True if len(tripoints) == 2 else False
-                    
+
 
                 lm_plot_info.append(
-                    dict(
+                    lm_info:=dict(
                         center=(x_c, y_c), 
                         angle=angle, 
                         arc_angle1=arc_angle1, 
