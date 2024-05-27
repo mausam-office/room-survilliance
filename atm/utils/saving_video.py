@@ -4,18 +4,34 @@ import cv2
 
 from utils.fresh_frame import FreshestFrame
 
-max_retry=3
-retry=0
+def get_output_path(output_folder,output_name):
+    os.makedirs(output_folder,exist_ok=True)
+    return os.path.join(output_folder,output_name)
 
-def save_video(camera,output_folder,output_name):
-    output_path=output_path(output_folder,output_name)
-    cam,out=video_writer(camera,output_path)
+def video_source(camera):
+    return FreshestFrame(camera=camera , callback=None)
+
+def video_writer(camera,output_path):
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v') 
+    c=cv2.VideoCapture(camera)
+    frame_width = c.get(cv2.CAP_PROP_FRAME_WIDTH)
+    frame_height = c.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    out = cv2.VideoWriter(output_path, fourcc ,30, (int(frame_width), int(frame_height))) 
+    return out
+
+retry=0
+def save_video(camera,output_folder,output_name,max_retry=3):
+    global retry
+    cam = video_source(camera)
+    output_path=get_output_path(output_folder=output_folder,output_name=output_name)
+    out=video_writer(camera,output_path)
     while True:
         ret, frame = cam.read()   
-        while (retry<max_retry):
-            if not ret:
-                retry += 1
-            break
+        if not ret:
+            retry += 1
+            if retry > max_retry:
+                break
+            continue
 
         out.write(frame)
         cv2.imshow('video',frame)
@@ -27,16 +43,5 @@ def save_video(camera,output_folder,output_name):
     out.release()
     cv2.destroyAllWindows()
 	
-def output_path(output_folder,output_name):
-    os.makedirs(output_folder,exist_ok=True)
-    return os.path.join(output_folder,output_name)
-
-def video_writer(camera,output_path):
-    cam = FreshestFrame(camera=camera , callback=None)
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v') 
-    frame_width = int(cam.get(cv2.CAP_PROP_FRAME_WIDTH))
-    frame_height = int(cam.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    out = cv2.VideoWriter(output_path, fourcc ,50, (frame_width, frame_height)) 
-    return cam,out
 
 
