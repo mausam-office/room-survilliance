@@ -5,3 +5,5 @@
 image_od*
 venv/
 virtualenv/
+atm/rules/
+atm/assets/

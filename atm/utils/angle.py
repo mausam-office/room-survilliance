@@ -47,7 +47,7 @@ def calculate_angle(w, h, vertex_pnt_idx, p1, p2, p3=None):
 		else:
 			if end_angle > start_angle:
 				end_angle -= 360
-		angle_degree = abs(start_angle-end_angle)
+		angle_degree = abs(start_angle-end_angle) #if p1.visibility > 0.75 and p2.visibility > 0.75 and p3.visibility > 0.75 else -1
 
 	except Exception as e:
 		raise e

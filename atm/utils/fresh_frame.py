@@ -1,3 +1,4 @@
+import time
 import cv2 
 import threading
 
@@ -7,7 +8,7 @@ class FreshestFrame(threading.Thread):
 		self.queue = queue
 		self.camera = camera
 		self.capture = cv2.VideoCapture(self.camera)
-		self.capture.set(cv2.CAP_PROP_FPS, 10)
+		self.capture.set(cv2.CAP_PROP_FPS, 50)
 		assert self.capture.isOpened()
 
 		# this lets the read() method block until there's a new frame
@@ -35,7 +36,7 @@ class FreshestFrame(threading.Thread):
 		self.camera = camera
 		self.capture = cv2.VideoCapture(self.camera)
 
-		self.capture.set(cv2.CAP_PROP_FPS, 10)
+		self.capture.set(cv2.CAP_PROP_FPS, 50)
 		assert self.capture.isOpened()
 		
 	def start(self):
@@ -53,6 +54,7 @@ class FreshestFrame(threading.Thread):
 			# block for fresh frame
 			(rv, img) = self.capture.read()
 			assert rv, exit()
+			time.sleep(0.005)
 			counter += 1
 
 			# publish the frame

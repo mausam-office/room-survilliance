@@ -13,7 +13,7 @@ class GeometricShapes:
     def __init__(self, ignore: list|tuple = []) -> None:
         self.ignore = ignore
 
-    def plot(self, image, landmarks, lm_plot_info=[], *args, **kwargs):
+    def plot(self, image, landmarks, lm_properties={}, *args, **kwargs):
         """
         Plotting shapes over image.
         """
@@ -35,6 +35,11 @@ class GeometricShapes:
         if 'connection' not in self.ignore:
             image = self.__plot_pose(image, landmarks)
 
+        if lm_properties:
+            distances = lm_properties.pop('distances')
+            lm_plot_info = lm_properties['angles'].values()
+
+        # plot angles
         for info in lm_plot_info:
             center = info['center']
             angle = info['angle']
@@ -51,6 +56,10 @@ class GeometricShapes:
             if plot_vertical_line:
                 image = self.__plot_vertical_line(image, center)
         
+        # plot distances
+        for _, (midpoint, distance) in distances.items():
+            image = self.__plot_distance(image, midpoint, distance)
+        
         return image
     
     def __plot_pose(self, image, landmarks):
@@ -65,16 +74,21 @@ class GeometricShapes:
     
     def __plot_angle_arc(self, image, center, arc_angle1, arc_angle2):
         return cv2.ellipse(
-            image, center, (15, 15), 0, arc_angle1, arc_angle2, (255, 0, 0), thickness=2
+            image, center, (15, 15), 0, arc_angle1, arc_angle2, (255, 0, 0), thickness=1
         )
     
     def __plot_angle(self, image, center, angle):
         x, y = center
-        return cv2.putText(image, f"{angle:.2f}", (x+15, y-15), fontFace=1, fontScale=2, color=(0, 0, 255), thickness=1)
+        return cv2.putText(image, f"{angle:.2f}", (x+5, y-5), fontFace=1, fontScale=1, color=(0, 0, 255), thickness=1)
 
     def __plot_vertical_line(self, image, center):
         x, y = center
         return cv2.line(image, (x, y), (x, 0), color=(125,125,125), thickness=1)
+
+    def __plot_distance(self, image, midpoint, distance):
+        x, y = midpoint
+        # image = cv2.circle()
+        return cv2.putText(image, f"{distance:.2f}", (x, y), fontFace=1, fontScale=1, color=(255, 0, 0), thickness=1)
 
     def image_shape(self, image):
         return image.shape
