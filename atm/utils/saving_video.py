@@ -1,4 +1,5 @@
 import os
+import time
 
 import cv2
 
@@ -9,7 +10,7 @@ def get_output_path(output_folder, output_name):
     return os.path.join(output_folder, output_name)
 
 def video_source(camera):
-    return FreshestFrame(camera = camera , callback = None)
+    return FreshestFrame(camera=camera , callback=None)
 
 def video_writer(camera, output_path):
     fourcc = cv2.VideoWriter_fourcc(*'mp4v') 
@@ -20,12 +21,19 @@ def video_writer(camera, output_path):
     c.release()
     return out
 
-def save_video(camera, output_folder, output_name, max_retry = 3):
-    retry=0
+def save_video(camera, output_folder, output_name, max_retry, recording_time):
+    recording_time = recording_time*60
+    start_time = time.time()
+    retry = 0
     cam = video_source(camera)
     output_path = get_output_path(output_folder = output_folder, output_name = output_name)
     out = video_writer(camera, output_path)
     while True:
+        elapsed_time = time.time() - start_time
+        if elapsed_time >= recording_time:
+            print("recording limit reached")
+            break
+
         ret, frame = cam.read()   
         if not ret:
             retry += 1
@@ -42,6 +50,3 @@ def save_video(camera, output_folder, output_name, max_retry = 3):
     cam.release()
     out.release()
     cv2.destroyAllWindows()
-	
-
-
