@@ -9,6 +9,7 @@ from multiprocessing import Queue
 from callbacks.image_storage import SetImageCallback
 from callbacks.result_storage import SetResultCallback
 from configs.features import COLUMNS 
+from configs.app_control import FIRST_RUN, MODEL_OPS
 from utils.fresh_frame import FreshestFrame
 from utils.pose_detection import Detection
 from utils.postprocess import Postprocess
@@ -18,6 +19,12 @@ st.set_page_config(layout="wide")
 
 st.header(":blue[Human Pose Data Collection]", divider='rainbow')
 
+video_source = 0
+
+## Initializing Session State variables
+
+if 'start' not in st.session_state:
+    st.session_state['start'] = False
 
 if 'q' not in st.session_state:
     st.session_state['q'] = Queue()
@@ -35,10 +42,14 @@ if 'csv_dataset' not in st.session_state:
     st.session_state['csv_dataset'] = CSVDataset('./data/dataset.csv', COLUMNS)
 
 if 'cam' not in st.session_state:
-    st.session_state['cam'] = FreshestFrame(
-        camera="rtsp://192.168.10.12:8554/profile0", 
-        callback=st.session_state['image_callback'].set_image
-    )
+    if MODEL_OPS:
+        print("Here in model ops")
+        st.session_state['cam'] = FreshestFrame(
+            camera="rtsp://192.168.10.12:8554/profile0", 
+            callback=st.session_state['image_callback'].set_image
+        )
+    else:
+        st.session_state['cam'] = cv2.VideoCapture(video_source)
 
 if 'detect' not in st.session_state:
     st.session_state['detect'] = Detection(st.session_state['result_callback'].set_result)
@@ -55,8 +66,8 @@ if 'iter_count' not in st.session_state:
     st.session_state['iter_count'] = 0
 
 
-st.session_state['start'] = False
 
+##  Functions
 def start_collecting():
     st.session_state['start'] = True
 
@@ -73,6 +84,71 @@ def clear():
         print('clearing ...')
         st.session_state['csv_dataset'].clear()
 
+def call_postprocess(pp):
+    pp.process(
+        st.session_state['image_callback'].image, 
+        st.session_state['q'], 
+        angle_calc_lm_idx_list=[
+            # points must be in descenting fashion and point2 is central or vertex point
+            # point1, point2, point3
+            (16, 14, 12), 
+            (15, 13, 11),
+
+            (14, 12, 24),
+            (13, 11, 23),
+
+            (26, 24, 12),
+            (25, 23, 11),
+
+            (28, 26, 24),
+            (27, 25, 23),
+        ],
+        dist_calc_lm_idx_list=[
+            # point1, point2, name connecting keypoints with side
+            (14, 12, 'width_elbow_shoulder_r'),
+            (13, 11, 'width_elbow_shoulder_l'),
+
+            # ((7, 8), (27, 28), 'dist_height_avg'),
+            (8, 28, 'dist_height_r'),
+            (7, 27, 'dist_height_l'),
+            (13, 14, 'dist_width'),
+
+            (12, 24, 'height_shoulder_waist_r'),
+            (11, 23, 'height_shoulder_waist_l'),
+
+            (24, 26, 'height_waist_knee_r'),
+            (23, 25, 'height_waist_knee_l'),
+
+            (12, 26, 'height_knee_shoulder_r'),
+            (11, 25, 'height_knee_shoulder_l'),
+
+            (24, 28, 'height_ankle_waist_r'),
+            (23, 27, 'height_ankle_waist_l'),
+
+            (11, 12, "shoulder_l_r"),
+            (23, 24, "waist_l_r"),
+            (25, 26, "knee_l_r"),
+        ],
+        actions=['hand_contraction', 'sitted'],
+        label=label,
+        unique_indices=[7, 8, 11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28],
+        app='streamlit',
+        plotted_img_callaback = st.session_state['ploted_image_callback'],
+        parse=True if st.session_state['start'] else False
+    )
+
+def set_image():
+    success, image = st.session_state['cam'].read()
+    if not success:
+        st.toast("Failed to retrieve frame from video.")
+        image = None
+    st.session_state['image_callback'].set_image(image)
+
+def set_clicked(key):
+    st.session_state[key] = True
+
+if FIRST_RUN and not MODEL_OPS:
+    set_image()
 
 with st.sidebar:
     label = st.radio('Pose Selection', ['standing', 'sitted', 'bowed'])
@@ -85,7 +161,7 @@ with st.sidebar:
     st.write('---')
     st.write('Data Storing')
     st.button('Save', on_click=save)
-    st.button('Clear', on_click=clear)
+    # st.button('Clear', on_click=clear)
 
 
 
@@ -105,71 +181,35 @@ with tab_data:
 
 with tab_image:
     image_loc = st.empty()
-
     try:
+        st.button("Next", on_click=set_clicked('btn_Next'))
         while True:
-            if st.session_state['image_callback'].image is not None:
+            if MODEL_OPS:
+                if st.session_state['image_callback'].image is None:
+                    continue
+                
                 # print(type(st.session_state['image_callback'].image))
                 st.session_state['detect'](st.session_state['image_callback'].image)
+                call_postprocess(st.session_state['pp'])
 
-                st.session_state['pp'].process(
-                    st.session_state['image_callback'].image, 
-                    st.session_state['q'], 
-                    angle_calc_lm_idx_list=[
-                        # points must be in descenting fashion and point2 is central or vertex point
-                        # point1, point2, point3
-                        (16, 14, 12), 
-                        (15, 13, 11),
+            else: # Data collection
+                if st.session_state['btn_Next']:
+                    set_image()
 
-                        (14, 12, 24),
-                        (13, 11, 23),
+                if st.session_state['image_callback'].image is None:
+                    continue
+                
+                st.session_state['detect'](st.session_state['image_callback'].image)
 
-                        (26, 24, 12),
-                        (25, 23, 11),
+                call_postprocess(st.session_state['pp'])
+                st.session_state['btn_Next'] = False
+                           
+            st.session_state['image_callback'].image = None
 
-                        (28, 26, 24),
-                        (27, 25, 23),
-                    ],
-                    dist_calc_lm_idx_list=[
-                        # point1, point2, name connecting keypoints with side
-                        (14, 12, 'width_elbow_shoulder_r'),
-                        (13, 11, 'width_elbow_shoulder_l'),
-
-                        # ((7, 8), (27, 28), 'dist_height_avg'),
-                        (8, 28, 'dist_height_r'),
-                        (7, 27, 'dist_height_l'),
-                        (13, 14, 'dist_width'),
-
-                        (12, 24, 'height_shoulder_waist_r'),
-                        (11, 23, 'height_shoulder_waist_l'),
-
-                        (24, 26, 'height_waist_knee_r'),
-                        (23, 25, 'height_waist_knee_l'),
-
-                        (12, 26, 'height_knee_shoulder_r'),
-                        (11, 25, 'height_knee_shoulder_l'),
-
-                        (24, 28, 'height_ankle_waist_r'),
-                        (23, 27, 'height_ankle_waist_l'),
-
-                        (11, 12, "shoulder_l_r"),
-                        (23, 24, "waist_l_r"),
-                        (25, 26, "knee_l_r"),
-                    ],
-                    actions=['hand_contraction', 'sitted'],
-                    label=label,
-                    unique_indices=[7, 8, 11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28],
-                    app='streamlit',
-                    plotted_img_callaback = st.session_state['ploted_image_callback'],
-                    parse=True if st.session_state['start'] else False
+            if st.session_state['ploted_image_callback'].image is not None:
+                image_loc.image(
+                    cv2.cvtColor(st.session_state['ploted_image_callback'].image, cv2.COLOR_BGR2RGB)
                 )
-
-                st.session_state['image_callback'].image = None
-
-                if st.session_state['ploted_image_callback'].image is not None:
-                    image_loc.image(
-                        cv2.cvtColor(st.session_state['ploted_image_callback'].image, cv2.COLOR_BGR2RGB)
-                    )
 
     except KeyboardInterrupt as e:
         st.session_state['cam'].release()

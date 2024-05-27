@@ -6,7 +6,7 @@ from utils.display import show_image
 from utils.distance import calculate_distance
 from utils.overlay import GeometricShapes
 from mediapipe.framework.formats.landmark_pb2 import NormalizedLandmarkList # type: ignore
-from rules import rules
+# from rules import rules
 
 
 class Postprocess:
@@ -14,9 +14,9 @@ class Postprocess:
         self.q = q
         self.csv_dataset = csv_dataset
         self.last_time_parsed = time.time()
-        self.interval = 1
+        self.interval = 0.4
 
-    def process(self, image, q, angle_calc_lm_idx_list, dist_calc_lm_idx_list, actions, label, unique_indices, app='', plotted_img_callaback=None, parse=False):
+    def process(self, image, q, angle_calc_lm_idx_list, dist_calc_lm_idx_list, actions, label, unique_indices, app='', plotted_img_callaback=None, parse=True):
         if q.qsize():
             result = q.get()
 
@@ -48,7 +48,7 @@ class Postprocess:
 
             if app != 'streamlit':
                 show_image(image)
-            if not parse and (time.time()-self.last_time_parsed)>=self.interval:
+            if parse and (time.time()-self.last_time_parsed)>=self.interval:
                 self.csv_dataset.parse(lm_properties, w, h, label)
                 self.last_time_parsed = time.time()
 
@@ -67,23 +67,23 @@ class Postprocess:
         
         return NormalizedLandmarkList(landmark=landmarks)
     
-    def get_rules(self, actions: list[str] | tuple[str]):
-        rules_opted = []
-        # print(f"{actions = }")
-        for action in actions:
-            match action:
-                case 'hand_contraction':
-                    rules_opted.append(rules.HandContractRule)
+    # def get_rules(self, actions: list[str] | tuple[str]):
+    #     rules_opted = []
+    #     # print(f"{actions = }")
+    #     for action in actions:
+    #         match action:
+    #             case 'hand_contraction':
+    #                 rules_opted.append(rules.HandContractRule)
                 
-                case "sitted":
-                    rules_opted.append(rules.SittedRule)
-        return rules_opted
+    #             case "sitted":
+    #                 rules_opted.append(rules.SittedRule)
+    #     return rules_opted
             
-    def execute_rules(self, rules_opted, data):
-        # print(rules_opted)
-        for rule in rules_opted:
-            if issubclass(rule, rules.ThreatRule):
-                rules.RuleExecuter().execute(data, rule())
+    # def execute_rules(self, rules_opted, data):
+    #     # print(rules_opted)
+    #     for rule in rules_opted:
+    #         if issubclass(rule, rules.ThreatRule):
+    #             rules.RuleExecuter().execute(data, rule())
 
     def get_angles(self, angle_calc_lm_idx_list, reconstructed_landmarks, w, h):
         lm_properties = {}

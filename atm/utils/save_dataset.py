@@ -20,14 +20,17 @@ class CSVDataset:
             self.create_empty_file()
 
     def create_empty_file(self):
-        open(self.filepath,'w').close()
+        # open(self.filepath,'w').close()
         self.get_empty_df().to_csv(self.filepath, index=False, mode='w')
 
 
     def save(self):
         # print(self.__dict__)
-        self.df.to_csv(self.filepath, index=False, mode='a', header=False)
-        self.clear()
+        try:
+            self.df.to_csv(self.filepath, index=False, mode='a', header=False)
+            self.clear()
+        except Exception as e:
+            print(e)
 
     def clear(self):
         print("clear called")
@@ -36,6 +39,7 @@ class CSVDataset:
     def parse(self, landmarks, w, h, label):
         if not self.data_loaded:
             self.df = self.get_empty_df()
+            self.empty_df = self.df.copy()
             self.data_loaded = True
 
         record = {}
@@ -64,10 +68,13 @@ class CSVDataset:
         # print(record)
         # print(record.keys())
         record_df = pd.DataFrame(record, index=[0])
-        if len(self.df) > 0:
-            self.df = pd.concat([self.df, record_df], ignore_index=True)
-        else:
-            self.df = record_df
+        # if len(self.df) > 0:
+        #     self.df = pd.concat([self.df, record_df], ignore_index=True)
+        # else:
+        #     self.df = record_df
+
+        # DF should have only one record 
+        self.df = pd.concat([self.empty_df, record_df], ignore_index=True)
         
         
         
