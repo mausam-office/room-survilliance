@@ -23,11 +23,11 @@ def video_writer(camera, output_path):
 
 def save_video(camera, output_folder, output_name, max_retry, recording_time):
     recording_time = recording_time*60
-    start_time = time.time()
     retry = 0
     cam = video_source(camera)
     output_path = get_output_path(output_folder = output_folder, output_name = output_name)
     out = video_writer(camera, output_path)
+    start_time = time.time()
     while True:
         elapsed_time = time.time() - start_time
         if elapsed_time >= recording_time:
@@ -42,7 +42,6 @@ def save_video(camera, output_folder, output_name, max_retry, recording_time):
             continue
 
         out.write(frame)
-        cv2.imshow('video', frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             print('saving video')
             break
