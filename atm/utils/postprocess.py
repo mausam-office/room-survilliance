@@ -67,23 +67,23 @@ class Postprocess:
         
         return NormalizedLandmarkList(landmark=landmarks)
     
-    def get_rules(self, actions: list[str] | tuple[str]):
-        rules_opted = []
-        # print(f"{actions = }")
-        for action in actions:
-            match action:
-                case 'hand_contraction':
-                    rules_opted.append(rules.HandContractRule)
+    # def get_rules(self, actions: list[str] | tuple[str]):
+    #     rules_opted = []
+    #     # print(f"{actions = }")
+    #     for action in actions:
+    #         match action:
+    #             case 'hand_contraction':
+    #                 rules_opted.append(rules.HandContractRule)
                 
-                case "sitted":
-                    rules_opted.append(rules.SittedRule)
-        return rules_opted
+    #             case "sitted":
+    #                 rules_opted.append(rules.SittedRule)
+    #     return rules_opted
             
-    def execute_rules(self, rules_opted, data):
-        # print(rules_opted)
-        for rule in rules_opted:
-            if issubclass(rule, rules.ThreatRule):
-                rules.RuleExecuter().execute(data, rule())
+    # def execute_rules(self, rules_opted, data):
+    #     # print(rules_opted)
+    #     for rule in rules_opted:
+    #         if issubclass(rule, rules.ThreatRule):
+    #             rules.RuleExecuter().execute(data, rule())
 
     def get_angles(self, angle_calc_lm_idx_list, reconstructed_landmarks, w, h):
         lm_properties = {}
