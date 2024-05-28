@@ -48,11 +48,11 @@ class Postprocess:
 
             if app != 'streamlit':
                 show_image(image)
-            if parse and (time.time()-self.last_time_parsed)>=self.interval:
-                self.csv_dataset.parse(lm_properties, w, h, label)
-                self.last_time_parsed = time.time()
+            # if parse and (time.time()-self.last_time_parsed)>=self.interval:
+            #     self.csv_dataset.parse(lm_properties, w, h, label)
+            #     self.last_time_parsed = time.time()
 
-            return lm_properties, w, h, label
+            return lm_properties, w, h
 
     def dict_to_landmark(self, result):
         landmarks = []
