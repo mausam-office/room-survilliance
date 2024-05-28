@@ -70,6 +70,8 @@ if 'iter_count' not in st.session_state:
 if 'unparsed_data' not in st.session_state:
     st.session_state['unparsed_data'] = None
 
+if 'label' not in st.session_state:
+    st.session_state['label'] = 'standing'
 
 
 ##  Functions
@@ -84,7 +86,7 @@ def save():
         print('Parsing')
         if st.session_state.unparsed_data is None and not isinstance(st.session_state.unparsed_data, tuple):
             return
-        st.session_state['csv_dataset'].parse(*st.session_state.unparsed_data, label)
+        st.session_state['csv_dataset'].parse(*st.session_state.unparsed_data, st.session_state.label)
 
 
         print('Saving ...')
@@ -163,14 +165,14 @@ def set_clicked(key):
 
 @st.experimental_fragment
 def labels_widget():
-    label_selected = st.radio('Pose Selection', ['standing', 'sitted', 'bowed'])
-    return label_selected
+    st.session_state.label = st.radio('Pose Selection', ['standing', 'sitted', 'bowed'])
+
 
 if FIRST_RUN and not MODEL_OPS:
     set_image()
 
 with st.sidebar:
-    label = labels_widget()
+    labels_widget()
 
     st.write('---')
     st.write('Data Recording')
@@ -202,34 +204,55 @@ with tab_image:
     image_loc = st.empty()
     try:
         st.button("Next", on_click=set_clicked('btn_Next'))
-        while True:
-            if MODEL_OPS:
-                if st.session_state['image_callback'].image is None:
-                    continue
+        if not st.session_state['btn_Next']:
+            st.stop()
+
+        set_image()
+
+        if st.session_state['image_callback'].image is None:
+            st.stop()
+        
+        st.session_state['detect'](st.session_state['image_callback'].image)
+
+        data = call_postprocess(st.session_state['pp'])
+        st.session_state.unparsed_data = data
+        st.session_state['btn_Next'] = False
+
+        st.session_state['image_callback'].image = None
+
+        if st.session_state['ploted_image_callback'].image is not None:
+            image_loc.image(
+                cv2.cvtColor(st.session_state['ploted_image_callback'].image, cv2.COLOR_BGR2RGB)
+            )
+
+        # while True:
+        #     if MODEL_OPS:
+        #         if st.session_state['image_callback'].image is None:
+        #             continue
                 
-                # print(type(st.session_state['image_callback'].image))
-                st.session_state['detect'](st.session_state['image_callback'].image)
-                call_postprocess(st.session_state['pp'])
+        #         # print(type(st.session_state['image_callback'].image))
+        #         st.session_state['detect'](st.session_state['image_callback'].image)
+        #         call_postprocess(st.session_state['pp'])
 
-            else: # Data collection
-                if st.session_state['btn_Next']:
-                    set_image()
+        #     else: # Data collection
+        #         if st.session_state['btn_Next']:
+        #             set_image()
 
-                if st.session_state['image_callback'].image is None:
-                    continue
+        #         if st.session_state['image_callback'].image is None:
+        #             continue
                 
-                st.session_state['detect'](st.session_state['image_callback'].image)
+        #         st.session_state['detect'](st.session_state['image_callback'].image)
 
-                data = call_postprocess(st.session_state['pp'])
-                st.session_state.unparsed_data = data
-                st.session_state['btn_Next'] = False
+        #         data = call_postprocess(st.session_state['pp'])
+        #         st.session_state.unparsed_data = data
+        #         st.session_state['btn_Next'] = False
                            
-            st.session_state['image_callback'].image = None
+        #     st.session_state['image_callback'].image = None
 
-            if st.session_state['ploted_image_callback'].image is not None:
-                image_loc.image(
-                    cv2.cvtColor(st.session_state['ploted_image_callback'].image, cv2.COLOR_BGR2RGB)
-                )
+        #     if st.session_state['ploted_image_callback'].image is not None:
+        #         image_loc.image(
+        #             cv2.cvtColor(st.session_state['ploted_image_callback'].image, cv2.COLOR_BGR2RGB)
+        #         )
 
     except KeyboardInterrupt as e:
         st.session_state['cam'].release()
