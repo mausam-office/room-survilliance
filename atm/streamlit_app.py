@@ -19,7 +19,12 @@ st.set_page_config(layout="wide")
 
 st.header(":blue[Human Pose Data Collection]", divider='rainbow')
 
-video_source = 0
+video_source = st.text_input("Enter video source: ").strip()
+if len(video_source) < 1:
+    st.stop()
+
+video_source = int(video_source) if video_source.isnumeric() else video_source
+
 label = None
 label_selected = None
 
@@ -73,6 +78,8 @@ if 'unparsed_data' not in st.session_state:
 if 'label' not in st.session_state:
     st.session_state['label'] = 'standing'
 
+if 'btn_Prev' not in st.session_state:
+    st.session_state['btn_Prev'] = False
 
 ##  Functions
 def start_collecting():
@@ -154,6 +161,7 @@ def call_postprocess(pp):
     return data
 
 def set_image():
+    # print(f"index Before setting: {st.session_state['cam'].get(cv2.CAP_PROP_POS_FRAMES)}")
     success, image = st.session_state['cam'].read()
     if not success:
         st.toast("Failed to retrieve frame from video.")
@@ -167,6 +175,16 @@ def set_clicked(key):
 def labels_widget():
     st.session_state.label = st.radio('Pose Selection', ['standing', 'sitted', 'bowed'])
 
+def prev_frame():
+    current_frame_pos = st.session_state['cam'].get(cv2.CAP_PROP_POS_FRAMES)
+    previous_frame_pos = current_frame_pos - 3  # 3 for recalling last frame as it forwards by 2 frame on every rerun
+    # print(f"{current_frame_pos=}, {previous_frame_pos=}")
+
+    if previous_frame_pos >= 0:
+        st.session_state['cam'].set(cv2.CAP_PROP_POS_FRAMES, previous_frame_pos)
+    # print(f"Current changed : {st.session_state['cam'].get(cv2.CAP_PROP_POS_FRAMES)}")
+    
+    set_clicked('btn_Prev')
 
 if FIRST_RUN and not MODEL_OPS:
     set_image()
@@ -203,8 +221,9 @@ with tab_data:
 with tab_image:
     image_loc = st.empty()
     try:
+        st.button("Previous", on_click=prev_frame)
         st.button("Next", on_click=set_clicked('btn_Next'))
-        if not st.session_state['btn_Next']:
+        if not st.session_state['btn_Next'] and not st.session_state['btn_Prev']:
             st.stop()
 
         set_image()
@@ -217,6 +236,7 @@ with tab_image:
         data = call_postprocess(st.session_state['pp'])
         st.session_state.unparsed_data = data
         st.session_state['btn_Next'] = False
+        st.session_state['btn_Prev'] = False
 
         st.session_state['image_callback'].image = None
 
