@@ -9,7 +9,8 @@ def record_video():
     st.session_state.video_source = int(video_source) if video_source.isnumeric() else video_source
     st.session_state.op_filename = op_filename if op_filename.endswith('.mp4') else op_filename + '.mp4'
     save_video(
-        st.session_state.video_source, 
+        # st.session_state.video_source,
+        "rtsp://192.168.1.188" ,
         'media/', 
         st.session_state.op_filename, 
         3, 
