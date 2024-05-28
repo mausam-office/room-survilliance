@@ -8,7 +8,7 @@ def callback_set_image(img):
     image =  img
 
 
-cam = FreshestFrame(camera="rtsp://192.168.1.88", callback=None)#, callback=callback_set_image)
+cam = FreshestFrame(camera="rtsp://192.168.1.188", callback=None)#, callback=callback_set_image)
 # cam = FreshestFrame(camera="rtsp://192.168.10.12:8554/profile0", callback=None)#, callback=callback_set_image)
 # cam = cv2.VideoCapture(0)#, callback=callback_set_image)
 

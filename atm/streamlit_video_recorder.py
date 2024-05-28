@@ -14,7 +14,6 @@ def record_video():
     op_filename = st.session_state.op_filename
     st.session_state.video_source = int(video_src) if video_src.isnumeric() else video_src
     st.session_state.op_filename = op_filename if op_filename.endswith('.mp4') else op_filename + '.mp4'
-
     cam = video_source(st.session_state.video_source)
     output_path = get_output_path(output_folder=output_folder, output_name=st.session_state.op_filename)
     out = video_writer(st.session_state.video_source, output_path)
@@ -46,6 +45,7 @@ def record_video():
     cam.release()
     out.release()
     cv2.destroyAllWindows()
+
 
 if 'ip_camera_input_placeholder' not in st.session_state:
     st.session_state.ip_camera_input_placeholder = st.empty()
