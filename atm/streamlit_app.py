@@ -20,6 +20,8 @@ st.set_page_config(layout="wide")
 st.header(":blue[Human Pose Data Collection]", divider='rainbow')
 
 video_source = 0
+label = None
+label_selected = None
 
 ## Initializing Session State variables
 
@@ -65,6 +67,9 @@ if 'fps_accumulated' not in st.session_state:
 if 'iter_count' not in st.session_state:
     st.session_state['iter_count'] = 0
 
+if 'unparsed_data' not in st.session_state:
+    st.session_state['unparsed_data'] = None
+
 
 
 ##  Functions
@@ -76,8 +81,15 @@ def stop_collecting():
 
 def save():
     if st.session_state['csv_dataset'] is not None:
+        print('Parsing')
+        if st.session_state.unparsed_data is None and not isinstance(st.session_state.unparsed_data, tuple):
+            return
+        st.session_state['csv_dataset'].parse(*st.session_state.unparsed_data, label)
+
+
         print('Saving ...')
         st.session_state['csv_dataset'].save()
+        st.session_state.unparsed_data = None
 
 def clear():
     if st.session_state['csv_dataset'] is not None:
@@ -85,7 +97,7 @@ def clear():
         st.session_state['csv_dataset'].clear()
 
 def call_postprocess(pp):
-    pp.process(
+    data = pp.process(
         st.session_state['image_callback'].image, 
         st.session_state['q'], 
         angle_calc_lm_idx_list=[
@@ -137,6 +149,8 @@ def call_postprocess(pp):
         parse=True if st.session_state['start'] else False
     )
 
+    return data
+
 def set_image():
     success, image = st.session_state['cam'].read()
     if not success:
@@ -147,11 +161,16 @@ def set_image():
 def set_clicked(key):
     st.session_state[key] = True
 
+@st.experimental_fragment
+def labels_widget():
+    label_selected = st.radio('Pose Selection', ['standing', 'sitted', 'bowed'])
+    return label_selected
+
 if FIRST_RUN and not MODEL_OPS:
     set_image()
 
 with st.sidebar:
-    label = st.radio('Pose Selection', ['standing', 'sitted', 'bowed'])
+    label = labels_widget()
 
     st.write('---')
     st.write('Data Recording')
@@ -201,7 +220,8 @@ with tab_image:
                 
                 st.session_state['detect'](st.session_state['image_callback'].image)
 
-                call_postprocess(st.session_state['pp'])
+                data = call_postprocess(st.session_state['pp'])
+                st.session_state.unparsed_data = data
                 st.session_state['btn_Next'] = False
                            
             st.session_state['image_callback'].image = None
