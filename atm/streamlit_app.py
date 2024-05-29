@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import cv2
+import numpy as np
 import pandas as pd
 import streamlit as st
 
@@ -20,10 +21,31 @@ st.set_page_config(layout="wide")
 st.header(":blue[Human Pose Data Collection]", divider='rainbow')
 
 video_source = st.text_input("Enter video source: ").strip()
-if len(video_source) < 1:
-    st.stop()
 
-video_source = int(video_source) if video_source.isnumeric() else video_source
+def get_video_source():
+    if len(video_source) < 1:
+        st.stop()
+
+    st.session_state.video_source = int(video_source) if video_source.isnumeric() else video_source
+
+def change_video_source():
+    del st.session_state['cam']
+    get_video_source()
+
+def set_video_source():
+    if 'cam' not in st.session_state:
+        if MODEL_OPS:
+            print("Here in model ops")
+            st.session_state['cam'] = FreshestFrame(
+                camera="rtsp://192.168.10.12:8554/profile0", 
+                callback=st.session_state['image_callback'].set_image
+            )
+        else:
+            st.session_state['cam'] = cv2.VideoCapture(st.session_state.video_source)
+
+get_video_source()
+
+set_video_source()
 
 label = None
 label_selected = None
@@ -48,15 +70,15 @@ if 'result_callback' not in st.session_state:
 if 'csv_dataset' not in st.session_state:
     st.session_state['csv_dataset'] = CSVDataset('./data/dataset.csv', COLUMNS)
 
-if 'cam' not in st.session_state:
-    if MODEL_OPS:
-        print("Here in model ops")
-        st.session_state['cam'] = FreshestFrame(
-            camera="rtsp://192.168.10.12:8554/profile0", 
-            callback=st.session_state['image_callback'].set_image
-        )
-    else:
-        st.session_state['cam'] = cv2.VideoCapture(video_source)
+# if 'cam' not in st.session_state:
+#     if MODEL_OPS:
+#         print("Here in model ops")
+#         st.session_state['cam'] = FreshestFrame(
+#             camera="rtsp://192.168.10.12:8554/profile0", 
+#             callback=st.session_state['image_callback'].set_image
+#         )
+#     else:
+#         st.session_state['cam'] = cv2.VideoCapture(st.session_state.video_source)
 
 if 'detect' not in st.session_state:
     st.session_state['detect'] = Detection(st.session_state['result_callback'].set_result)
@@ -188,6 +210,7 @@ def prev_frame():
 
 if FIRST_RUN and not MODEL_OPS:
     set_image()
+    FIRST_RUN = False
 
 with st.sidebar:
     labels_widget()
@@ -202,6 +225,9 @@ with st.sidebar:
     st.button('Save', on_click=save)
     # st.button('Clear', on_click=clear)
 
+    st.write('---')
+    st.write('Change Video Source')
+    st.button('Change', on_click=change_video_source)
 
 
 tab_image, tab_data = st.tabs(['image', 'data'])
@@ -238,12 +264,18 @@ with tab_image:
         st.session_state['btn_Next'] = False
         st.session_state['btn_Prev'] = False
 
-        st.session_state['image_callback'].image = None
 
         if st.session_state['ploted_image_callback'].image is not None:
             image_loc.image(
                 cv2.cvtColor(st.session_state['ploted_image_callback'].image, cv2.COLOR_BGR2RGB)
             )
+            st.session_state['ploted_image_callback'].image = None
+        else:
+            image_loc.image(
+                cv2.cvtColor(st.session_state['image_callback'].image, cv2.COLOR_BGR2RGB)
+            )
+        st.session_state['image_callback'].image = None
+
 
         # while True:
         #     if MODEL_OPS:
