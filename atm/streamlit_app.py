@@ -264,9 +264,13 @@ with tab_data:
 
 with tab_image:
     image_loc = st.empty()
+    pagination_containter = st.container()
+    prev_col, next_col = pagination_containter.columns(2)
     try:
-        st.button("Previous", on_click=prev_frame)
-        st.button("Next", on_click=set_clicked('btn_Next'))
+        with prev_col:
+            st.button("Previous", on_click=prev_frame)
+        with next_col:
+            st.button("Next", on_click=set_clicked('btn_Next'))
         if not st.session_state['btn_Next'] and not st.session_state['btn_Prev']:
             st.stop()
 
