@@ -100,6 +100,9 @@ if 'unparsed_data' not in st.session_state:
 if 'label' not in st.session_state:
     st.session_state['label'] = 'standing'
 
+if 'btn_Next' not in st.session_state:
+    st.session_state['btn_Next'] = False
+
 if 'btn_Prev' not in st.session_state:
     st.session_state['btn_Prev'] = False
 
@@ -214,7 +217,12 @@ def prev_frame():
 @st.experimental_fragment
 def choose_frame_number():
     if st.session_state.get('cam') is not None:
-        st.session_state.selected_frame_num = st.slider("Choose Frame Number", 0, int(st.session_state['cam'].get(cv2.CAP_PROP_FRAME_COUNT))-3)
+        st.session_state.selected_frame_num = st.slider(
+            "Choose Frame Number", 
+            0, 
+            (total_frames:=int(st.session_state['cam'].get(cv2.CAP_PROP_FRAME_COUNT))-3), 
+            0 if st.session_state.selected_frame_num < 0 else min(st.session_state.selected_frame_num, total_frames)
+        )
 
 def update_frame():
     if st.session_state.get('cam') is not None:
@@ -243,7 +251,7 @@ with st.sidebar:
     
     st.write('---')
     st.write('Fast-Forward Videos')
-    choose_frame_number()
+    # choose_frame_number()
     st.button('Update', on_click=update_frame)
         
 
@@ -267,12 +275,25 @@ with tab_image:
     pagination_containter = st.container()
     prev_col, next_col = pagination_containter.columns(2)
     try:
-        with prev_col:
-            st.button("Previous", on_click=prev_frame)
         with next_col:
             st.button("Next", on_click=set_clicked('btn_Next'))
+        with prev_col:
+            st.button("Previous", on_click=prev_frame)
         if not st.session_state['btn_Next'] and not st.session_state['btn_Prev']:
             st.stop()
+
+        print(f"Before clicked {st.session_state.selected_frame_num}")
+        if st.session_state['btn_Prev']:
+            print('prev clicked')
+            st.session_state.selected_frame_num -= 1 
+            if st.session_state.selected_frame_num < 0:
+                st.session_state.selected_frame_num = 0
+        else:
+            print('next clicked')
+            st.session_state.selected_frame_num += 1
+        
+        print(f"After clicked {st.session_state.selected_frame_num}")
+        choose_frame_number()
 
         set_image()
 
