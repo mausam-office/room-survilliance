@@ -199,7 +199,7 @@ def labels_widget():
 
 def prev_frame():
     current_frame_pos = st.session_state['cam'].get(cv2.CAP_PROP_POS_FRAMES)
-    previous_frame_pos = current_frame_pos - 3  # 3 for recalling last frame as it forwards by 2 frame on every rerun
+    previous_frame_pos = current_frame_pos - 4  # 3 for recalling last frame as it forwards by 2 frame on every rerun
     # print(f"{current_frame_pos=}, {previous_frame_pos=}")
 
     if previous_frame_pos >= 0:
