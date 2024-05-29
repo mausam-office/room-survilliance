@@ -103,6 +103,9 @@ if 'label' not in st.session_state:
 if 'btn_Prev' not in st.session_state:
     st.session_state['btn_Prev'] = False
 
+if 'selected_frame_num' not in st.session_state:
+    st.session_state['selected_frame_num'] = 0
+
 ##  Functions
 def start_collecting():
     st.session_state['start'] = True
@@ -208,6 +211,15 @@ def prev_frame():
     
     set_clicked('btn_Prev')
 
+@st.experimental_fragment
+def choose_frame_number():
+    if st.session_state.get('cam') is not None:
+        st.session_state.selected_frame_num = st.slider("Choose Frame Number", 0, int(st.session_state['cam'].get(cv2.CAP_PROP_FRAME_COUNT))-3)
+
+def update_frame():
+    if st.session_state.get('cam') is not None:
+        st.session_state['cam'].set(cv2.CAP_PROP_POS_FRAMES, st.session_state.selected_frame_num)
+
 if FIRST_RUN and not MODEL_OPS:
     set_image()
     FIRST_RUN = False
@@ -228,6 +240,12 @@ with st.sidebar:
     st.write('---')
     st.write('Change Video Source')
     st.button('Change', on_click=change_video_source)
+    
+    st.write('---')
+    st.write('Fast-Forward Videos')
+    choose_frame_number()
+    st.button('Update', on_click=update_frame)
+        
 
 
 tab_image, tab_data = st.tabs(['image', 'data'])
