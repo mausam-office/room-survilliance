@@ -188,6 +188,11 @@ def call_postprocess(pp):
 
     return data
 
+def transform_image(key):
+    img=cv2.cvtColor(st.session_state[key].image, cv2.COLOR_BGR2RGB)
+    return cv2.resize(img,None,fx=0.75,fy=0.75)
+
+
 def set_image():
     # print(f"index Before setting: {st.session_state['cam'].get(cv2.CAP_PROP_POS_FRAMES)}")
     success, image = st.session_state['cam'].read()
@@ -310,12 +315,14 @@ with tab_image:
 
         if st.session_state['ploted_image_callback'].image is not None:
             image_loc.image(
-                cv2.cvtColor(st.session_state['ploted_image_callback'].image, cv2.COLOR_BGR2RGB)
+                transform_image('ploted_image_callback')
+                # cv2.cvtColor(st.session_state['ploted_image_callback'].image, cv2.COLOR_BGR2RGB)
             )
             st.session_state['ploted_image_callback'].image = None
         else:
             image_loc.image(
-                cv2.cvtColor(st.session_state['image_callback'].image, cv2.COLOR_BGR2RGB)
+                transform_image('image_callback')
+                # cv2.cvtColor(st.session_state['image_callback'].image, cv2.COLOR_BGR2RGB)
             )
         st.session_state['image_callback'].image = None
 
