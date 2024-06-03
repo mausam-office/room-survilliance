@@ -14,7 +14,7 @@ from model.src.data_cleaning import (
 )
 
 
-def clean_data(data: pd.DataFrame):
+def clean_data(data: pd.DataFrame, seperate_test_set):
     """
     Component for cleaning data.
     Args:
@@ -31,7 +31,7 @@ def clean_data(data: pd.DataFrame):
         data = dc.handle_data()
 
         dc = DataCleaning(data, TargetFeatureSplitStrategy())
-        if ModelConfig.seperate_test_set:
+        if seperate_test_set:
             X, y = dc.handle_data()
             return X, y
 

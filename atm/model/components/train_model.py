@@ -8,7 +8,7 @@ from model.components.config import ModelConfig
 def train_model(
     X_train: pd.DataFrame,
     y_train: pd.DataFrame|pd.Series,
-    config: ModelConfig,
+    model_name: str,
     **kwargs
 ) -> ClassifierMixin:
     """
@@ -21,18 +21,19 @@ def train_model(
         y_test: pd.DataFrame
         config: ModelNameConfig
     """
+    print('Called')
     try:
         model = None
-        if config.model_name == 'LinearRegression':
+        if model_name == 'LinearRegression':
             model = LogisticRegressionModel()
             trained_model = model.train(X_train, y_train, **kwargs)
             return trained_model
-        elif config.model_name == 'SGDClassification':
+        elif model_name == 'SGDClassification':
             model = SGDClassificationModel()
             trained_model = model.train(X_train, y_train, **kwargs)
             return trained_model
         else:
-            raise NotImplementedError(f"Model {config.model_name} is not implemented.")
+            raise NotImplementedError(f"Model {model_name} is not implemented.")
     except Exception as e:
         print(f"Error in training model. {e}")
         raise e
