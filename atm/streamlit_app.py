@@ -42,6 +42,14 @@ def set_video_source():
             )
         else:
             st.session_state['cam'] = cv2.VideoCapture(st.session_state.video_source)
+        
+        if st.session_state.get('cam') is not None:
+            st.session_state.selected_frame_num = st.slider(
+                "Choose Frame Number", 
+                0, 
+                (total_frames:=int(st.session_state['cam'].get(cv2.CAP_PROP_FRAME_COUNT))-3), 
+                0
+            )
 
 get_video_source()
 
