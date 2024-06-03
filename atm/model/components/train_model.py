@@ -21,7 +21,6 @@ def train_model(
         y_test: pd.DataFrame
         config: ModelNameConfig
     """
-    print('Called')
     try:
         model = None
         if model_name == 'LinearRegression':

@@ -6,7 +6,7 @@ from model.components.config import ModelConfig
 
 import joblib
 
-def train_pipeline(data_filepath: list[str], model_name='', random_state=0, use_ui=False, seperate_test_set=False):
+def train_pipeline(data_filepath: list[str], model_name='', random_state=0, use_ui=False, seperate_test_set=False, output_model_name=''):
     """
     Pipeline for training data.
     Args:
@@ -42,5 +42,5 @@ def train_pipeline(data_filepath: list[str], model_name='', random_state=0, use_
         {f1=}
     """)
 
-    joblib.dump(model, './atm/saved_model/sgd_model_new.pkl')
+    joblib.dump(model, f'./atm/saved_model/{output_model_name}.pkl')
     print('Model saved')
