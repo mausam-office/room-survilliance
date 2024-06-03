@@ -1,11 +1,15 @@
 import pandas as pd
+
 from typing import Tuple
 from typing_extensions import Annotated
+
+from model.components.config import ModelConfig
 from model.src.data_cleaning import (
     DataCleaning, 
     DuplicateDataRemovalStrategy, 
     FeatureRemovalStrategy, 
     DataPreProcessStrategy, 
+    TargetFeatureSplitStrategy, 
     DataSplitStrategy
 )
 
@@ -25,6 +29,11 @@ def clean_data(data: pd.DataFrame):
 
         dc = DataCleaning(data, DataPreProcessStrategy())
         data = dc.handle_data()
+
+        dc = DataCleaning(data, TargetFeatureSplitStrategy())
+        if ModelConfig.seperate_test_set:
+            X, y = dc.handle_data()
+            return X, y
 
         dc = DataCleaning(data, DataSplitStrategy())
         X_train, X_test, y_train, y_test = dc.handle_data()

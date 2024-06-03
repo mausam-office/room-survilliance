@@ -103,7 +103,27 @@ class DataPreProcessStrategy(DataStrategy):
         except Exception as e:
             print(f"Error in preprocessing the data: {e}")
             raise e
+        
 
+class TargetFeatureSplitStrategy(DataStrategy):
+    def handle_data(self, data: pd.DataFrame) -> Tuple[
+        Annotated[pd.DataFrame, "X"],
+        Annotated[pd.Series, "y"]
+    ]:
+        """
+        Splits the data in independent and dependent features.
+
+        Args:
+            df: pandas.Dataframe
+        """
+        try:
+            X = data.drop(['label'], axis=1)
+            y = data['label']
+            return X, y
+        except Exception as e:
+            print(f"Error in preprocessing the data: {e}")
+            raise e
+        
 
 class DataSplitStrategy(DataStrategy):
     def handle_data(self, data: pd.DataFrame, test_size=0.2) -> Tuple[
@@ -119,8 +139,9 @@ class DataSplitStrategy(DataStrategy):
             df: pandas.Dataframe
         """
         try:
-            X = data.drop(['label'], axis=1)
-            y = data['label']
+            # X = data.drop(['label'], axis=1)
+            # y = data['label']
+            X, y = TargetFeatureSplitStrategy().handle_data(data)
             X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=42, stratify=y)
             return X_train, X_test, y_train, y_test
         except Exception as e:

@@ -2,15 +2,13 @@ import pandas as pd
 
 from model.src.model_dev import LogisticRegressionModel, SGDClassificationModel
 from sklearn.base import ClassifierMixin
-from model.components.config import ModelNameConfig
+from model.components.config import ModelConfig
 
 
 def train_model(
     X_train: pd.DataFrame,
-    X_test: pd.DataFrame,
     y_train: pd.DataFrame|pd.Series,
-    y_test: pd.DataFrame|pd.Series,
-    config: ModelNameConfig,
+    config: ModelConfig,
     **kwargs
 ) -> ClassifierMixin:
     """
@@ -26,12 +24,12 @@ def train_model(
     try:
         model = None
         if config.model_name == 'LinearRegression':
-            model = LogisticRegressionModel(**kwargs)
-            trained_model = model.train(X_train, y_train)
+            model = LogisticRegressionModel()
+            trained_model = model.train(X_train, y_train, **kwargs)
             return trained_model
         elif config.model_name == 'SGDClassification':
-            model = SGDClassificationModel(**kwargs)
-            trained_model = model.train(X_train, y_train)
+            model = SGDClassificationModel()
+            trained_model = model.train(X_train, y_train, **kwargs)
             return trained_model
         else:
             raise NotImplementedError(f"Model {config.model_name} is not implemented.")
