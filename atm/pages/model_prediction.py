@@ -1,4 +1,5 @@
 import os
+import time
 
 import cv2
 import streamlit as st
@@ -74,8 +75,8 @@ def predict():
         return result
 
 
-if 'predicted_pose' not in st.session_state:
-    st.session_state['predicted_pose'] = None
+# if 'predicted_pose' not in st.session_state:
+#     st.session_state['predicted_pose'] = None
 
 with st.sidebar:
     st.session_state.ml_alogrithm = st.radio('Select target algorithm',model_trained)
@@ -84,13 +85,13 @@ with st.sidebar:
 
     clicked = st.button( "Predict")
 
-    st.write('---')
+    # st.write('---')
 
-    if clicked:
-        predicted_pose = predict()
-        st.session_state.predicted_pose = predicted_pose
-
-        st.write('Predicted Pose:', predicted_pose)
+    # if clicked:
+    #     predicted_pose = predict()
+    #     st.session_state.predicted_pose = predicted_pose
+    # def display_pose(predicted_pose):
+    #     st.write('Predicted Pose:',predicted_pose)
     
     st.write('---')
     st.write('Change Video Source')
@@ -195,17 +196,17 @@ def call_postprocess(pp):
 
 image_loc = st.empty()
 
-def set_image():
-    # print(f"index Before setting: {st.session_state['cam'].get(cv2.CAP_PROP_POS_FRAMES)}")
-    success, image = st.session_state['cam'].read()
-    if not success:
-        st.toast("Failed to retrieve frame from video.")
-        image = None
-    st.session_state['image_callback'].set_image(image)
+# def set_image():
+#     # print(f"index Before setting: {st.session_state['cam'].get(cv2.CAP_PROP_POS_FRAMES)}")
+#     success, image = st.session_state['cam'].read()
+#     if not success:
+#         st.toast("Failed to retrieve frame from video.")
+#         image = None
+#     st.session_state['image_callback'].set_image(image)
 
-if FIRST_RUN and not MODEL_OPS:
-    set_image()
-    FIRST_RUN = False
+# if FIRST_RUN and not MODEL_OPS:
+#     set_image()
+# #     FIRST_RUN = False
 
 
 
@@ -219,72 +220,98 @@ def video_functions(video):
     print(fps)
     return fps , width , height , VIDEO_CODEC
 
-def transform_image(key):
+def transform_image(key,predicted_pose):
     img=cv2.cvtColor(st.session_state[key].image, cv2.COLOR_BGR2RGB)
     cv2.putText(
                 img,
-                text = f'Pose detected:{st.session_state.predicted_pose}',
-                org=(950,50),
+                text = f'Pose detected:{predicted_pose}',
+                org=(900,50),
                 fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                 fontScale=1,
+                thickness=2,
                 color=(255,0,0),
                 lineType=cv2.LINE_AA)
             
     return cv2.resize(img,None,fx=1.5,fy=1.5)
 
-if st.session_state['image_callback'].image is None:
-    st.stop()
+def postprocess_data():
+    data = call_postprocess(st.session_state['pp'])
+    st.session_state.unparsed_data = data
+
+# if st.session_state['image_callback'].image is None:
+#     st.stop()
+
+# st.session_state['detect'](st.session_state['image_callback'].image)
+
+def plotted_image(predicted_pose):
+    if (st.session_state['image_callback'].image) is None:
+        st.stop()
+
+    st.session_state['detect'](st.session_state['image_callback'].image)
+
+    if st.session_state['ploted_image_callback'].image is not None:
+        image_loc.image(
+            transform_image('ploted_image_callback',predicted_pose)
+        )
+        st.session_state['ploted_image_callback'].image = None
+    else:
+        image_loc.image(
+            transform_image('image_callback',predicted_pose)
+        )
+
+    st.session_state['image_callback'].image = None
+
+
+def display_video(input_video,output_video):
+    # if clicked:
+        # predicted_pose = predict()
+        # st.session_state.predicted_pose = predicted_pose
+
+    cam = cv2.VideoCapture(input_video)
+    fps,width,height,VIDEO_CODEC = video_functions(input_video)
+    out = cv2.VideoWriter(output_video,
+                        cv2.VideoWriter_fourcc(*VIDEO_CODEC),
+                        fps,
+                        (width,height))
+    num_frames_skip = 3
+    cnt = 0
+    while cam.isOpened():
+        success, frame = cam.read()
+        if not success:
+            break
+        cnt += 1
+        if cnt < num_frames_skip:
+            continue
+        cnt = 0
+        # colored_frame = cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
+        st.session_state['image_callback'].set_image(frame)
+        # st.session_state.img_container.image(colored_frame)
         
-st.session_state['detect'](st.session_state['image_callback'].image)
+        postprocess_data()
 
-data = call_postprocess(st.session_state['pp'])
-st.session_state.unparsed_data = data
+        predicted_pose = predict()
 
-# def output(input_video,output_video):
-#     #creating video output displaying the detection.
-#     print('c')
-#     fps,width,height,VIDEO_CODEC = video_functions(input_video)
-#     out = cv2.VideoWriter(output_video,
-#                         cv2.VideoWriter_fourcc(*VIDEO_CODEC),
-#                         fps,
-#                         (width,height))
-#     currentframe=0
-#     while True:
-#         success, image = st.session_state['cam'].read()
-#         if not success:
-#             st.toast("Failed to retrieve frame from video.")
-#             image = None
-#         # st.session_state['image_callback'].set_image(image)
-#         # st.session_state.img_container.image(image)
-       
+        plotted_image(predicted_pose)
 
-
-# print('a')
-# predict(df)
-
-#         out.write(image)
-#         currentframe +=1
+        
+        
+        # st.session_state.predicted_pose = predicted_pose
+        # display_pose(predicted_pose)
+        
+        # time.sleep(1/29)
+        
+        out.write(frame)
+        
             
 
-#         out.release()
-#         st.session_state['cam'].release()
-#         cv2.destroyAllWindows()
+    out.release()
+    cam.release()
+    cv2.destroyAllWindows()
+
+if clicked:
+    display_video( st.session_state.video_source , output_name)
 
 
-
-# output(st.session_state.video_source, output_name)
-# print('b')
-
-if st.session_state['ploted_image_callback'].image is not None:
-    image_loc.image(
-        transform_image('ploted_image_callback')
-    )
-    st.session_state['ploted_image_callback'].image = None
-else:
-    image_loc.image(
-        transform_image('image_callback')
-    )
-st.session_state['image_callback'].image = None
 
 
 
