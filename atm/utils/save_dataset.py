@@ -9,6 +9,8 @@ class CSVDataset:
         self.filepath = filepath if filepath.endswith('.csv') else filepath + '.csv'
         self.columns = columns
         self.data_loaded = False
+        # if not os.path.exists(os.path.dirname(self.filepath)):
+        #     self.resolve_parent_dir()
     
     def get_empty_df(self):
         self.resolve_parent_dir()
@@ -36,7 +38,7 @@ class CSVDataset:
         print("clear called")
         self.df = self.get_empty_df()
 
-    def parse(self, landmarks, w, h, label):
+    def parse(self, landmarks, w, h, label, req_ret=False):
         if not self.data_loaded:
             self.df = self.get_empty_df()
             self.empty_df = self.df.copy()
@@ -65,6 +67,7 @@ class CSVDataset:
         record.update(landmarks['visibilities'])
 
         record['label'] = label
+
         # print(record)
         # print(record.keys())
         record_df = pd.DataFrame(record, index=[0])
@@ -76,5 +79,6 @@ class CSVDataset:
         # DF should have only one record 
         self.df = pd.concat([self.empty_df, record_df], ignore_index=True)
         
-        
+        if req_ret:
+            return self.df
         
