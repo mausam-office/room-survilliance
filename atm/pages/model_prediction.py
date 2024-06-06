@@ -29,18 +29,25 @@ def get_video_source():
     if len(video_source) < 1:
         st.stop()
 
+    if (video_source[:5] == 'rtsp:'):
+        st.session_state.video_source = video_source
+
     st.session_state.video_source = int(video_source) if video_source.isnumeric() else video_source
 
+
 def change_video_source():
+    if isinstance(st.session_state['cam'],FreshestFrame):
+        FreshestFrame.release()
+    
     del st.session_state['cam']
     get_video_source()
 
 def set_video_source():
     if 'cam' not in st.session_state:
-        if MODEL_OPS:
+        if (video_source[:6] == 'rtsp:'):
             print("Here in model ops")
             st.session_state['cam'] = FreshestFrame(
-                camera="rtsp://192.168.10.12:8554/profile0", 
+                camera=st.session_state.video_source, 
                 callback=st.session_state['image_callback'].set_image
             )
         else:
@@ -212,20 +219,22 @@ image_loc = st.empty()
 
 def video_functions(video):
 #calculating the values of the video 
+    # if st.session_state['cam'] is None:
     st.session_state['cam'] = cv2.VideoCapture(video)
     fps=int(st.session_state['cam'].get(cv2.CAP_PROP_FPS))
     width = int(st.session_state['cam'].get(cv2.CAP_PROP_FRAME_WIDTH))
     height =int(st.session_state['cam'].get(cv2.CAP_PROP_FRAME_HEIGHT))
-    VIDEO_CODEC= 'mp4v'
+    VIDEO_CODEC = 'mp4v'
+
     print(fps)
-    return fps , width , height , VIDEO_CODEC
+    return fps , width , height, VIDEO_CODEC 
 
 def transform_image(key,predicted_pose):
     img=cv2.cvtColor(st.session_state[key].image, cv2.COLOR_BGR2RGB)
     cv2.putText(
                 img,
                 text = f'Pose detected:{predicted_pose}',
-                org=(900,50),
+                org=(20,75),
                 fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                 fontScale=1,
                 thickness=2,
@@ -262,20 +271,26 @@ def plotted_image(predicted_pose):
     st.session_state['image_callback'].image = None
 
 
-def display_video(input_video,output_video):
-    # if clicked:
-        # predicted_pose = predict()
-        # st.session_state.predicted_pose = predicted_pose
-
-    cam = cv2.VideoCapture(input_video)
+def display_video(input_video , output_video):
+    if(input_video[:5] == 'rtsp:'):
+        st.session_state['cam'] = FreshestFrame(
+            camera=input_video, 
+            callback=st.session_state['image_callback'].set_image
+        )
+    else:
+        st.session_state['cam'] = cv2.VideoCapture(st.session_state.video_source)
+    
+    cam = st.session_state['cam']
+    
+   
     fps,width,height,VIDEO_CODEC = video_functions(input_video)
     out = cv2.VideoWriter(output_video,
-                        cv2.VideoWriter_fourcc(*VIDEO_CODEC),
-                        fps,
-                        (width,height))
+                    cv2.VideoWriter_fourcc(*VIDEO_CODEC),
+                    fps,
+                    (width,height))
     num_frames_skip = 3
     cnt = 0
-    while cam.isOpened():
+    while True:
         success, frame = cam.read()
         if not success:
             break
@@ -283,9 +298,8 @@ def display_video(input_video,output_video):
         if cnt < num_frames_skip:
             continue
         cnt = 0
-        # colored_frame = cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
+        
         st.session_state['image_callback'].set_image(frame)
-        # st.session_state.img_container.image(colored_frame)
         
         postprocess_data()
 
@@ -309,7 +323,7 @@ def display_video(input_video,output_video):
     cv2.destroyAllWindows()
 
 if clicked:
-    display_video( st.session_state.video_source , output_name)
+    display_video( st.session_state.video_source,output_name)
 
 
 
