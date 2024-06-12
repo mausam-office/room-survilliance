@@ -37,7 +37,7 @@ def get_video_source():
 
 def change_video_source():
     if isinstance(st.session_state['cam'],FreshestFrame):
-        FreshestFrame.release()
+        st.session_state['cam'].release()
     
     del st.session_state['cam']
     get_video_source()
@@ -229,7 +229,7 @@ def video_functions(video):
     print(fps)
     return fps , width , height, VIDEO_CODEC 
 
-def transform_image(key,predicted_pose):
+def transform_image(key, predicted_pose, write=False):
     img=cv2.cvtColor(st.session_state[key].image, cv2.COLOR_BGR2RGB)
     cv2.putText(
                 img,
@@ -241,11 +241,11 @@ def transform_image(key,predicted_pose):
                 color=(255,0,0),
                 lineType=cv2.LINE_AA)
     
-    global out
-    out.write(cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
+    if write:
+        st.session_state.out.write(cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
 
     # out.release()
-    return cv2.resize(img,None,fx=1.5,fy=1.5)
+    return img
 
 def postprocess_data():
     data = call_postprocess(st.session_state['pp'])
@@ -272,55 +272,66 @@ def plotted_image(predicted_pose):
 
     st.session_state['image_callback'].image = None
 
-fps,width,height,VIDEO_CODEC = video_functions(st.session_state.video_source)
-out = cv2.VideoWriter(output_name,
-                cv2.VideoWriter_fourcc(*VIDEO_CODEC),
-                fps,
-                (width,height))
+if 'out' not in st.session_state: 
+    fps, width, height, VIDEO_CODEC = video_functions(st.session_state.video_source)
+    st.session_state['out'] = cv2.VideoWriter(output_name,
+                    cv2.VideoWriter_fourcc(*VIDEO_CODEC),
+                    fps,
+                    (width, height)
+    )
 
 
 def display_video(input_video):
-    if(input_video[:5] == 'rtsp:'):
-        st.session_state['cam'] = FreshestFrame(
-            camera=input_video, 
-            callback=st.session_state['image_callback'].set_image
-        )
-    else:
-        st.session_state['cam'] = cv2.VideoCapture(st.session_state.video_source)
+    # if(input_video[:5] == 'rtsp:'):
+    #     st.session_state['cam'] = FreshestFrame(
+    #         camera=input_video, 
+    #         callback=st.session_state['image_callback'].set_image
+    #     )
+    # else:
+    #     st.session_state['cam'] = cv2.VideoCapture(st.session_state.video_source)
     
-    cam = st.session_state['cam']
+    # cam = st.session_state['cam']
     
-    num_frames_skip = 3
+    num_frames_skip = 2
     cnt = 0
-    while True:
-        success, frame = cam.read()
-        if not success:
-            break
-        cnt += 1
-        if cnt < num_frames_skip:
-            continue
-        cnt = 0
-        
-        st.session_state['image_callback'].set_image(frame)
-        
-        st.session_state['detect'](st.session_state['image_callback'].image)
+    try:
+        while True:
+            start = time.time()
+            success, frame = st.session_state['cam'].read()
+            if not success:
+                break
+            cnt += 1
+            if cnt < num_frames_skip:
+                continue
+            cnt = 0
+            
+            st.session_state['image_callback'].set_image(frame)
+            
+            st.session_state['detect'](st.session_state['image_callback'].image)
 
-        postprocess_data()
+            postprocess_data()
 
-        predicted_pose = predict()
+            predicted_pose = predict()
 
-        plotted_image(predicted_pose)
-        # time.sleep(0.005)
+            transform_image('image_callback', predicted_pose, write=True)
+            plotted_image(predicted_pose)
+            # time.sleep(0.005)
+            print(f"FPS: {1/(time.time() - start)}")
+            
+    except KeyboardInterrupt:
+        exit()
 
 
     # out.release()
-    cam.release()
     cv2.destroyAllWindows()
 
 if clicked:
     display_video( st.session_state.video_source)
 
-out.release()
+st.session_state.out.release()
+
+st.session_state['cam'].release()
+cv2.destroyAllWindows()
 
 
 
