@@ -282,13 +282,13 @@ if 'out' not in st.session_state:
 
 
 def display_video(input_video):
-    # if(input_video[:5] == 'rtsp:'):
-    #     st.session_state['cam'] = FreshestFrame(
-    #         camera=input_video, 
-    #         callback=st.session_state['image_callback'].set_image
-    #     )
-    # else:
-    #     st.session_state['cam'] = cv2.VideoCapture(st.session_state.video_source)
+    if(input_video[:5] == 'rtsp:'):
+        st.session_state['cam'] = FreshestFrame(
+            camera=input_video, 
+            callback=st.session_state['image_callback'].set_image
+        )
+    else:
+        st.session_state['cam'] = cv2.VideoCapture(st.session_state.video_source)
     
     # cam = st.session_state['cam']
     
@@ -298,6 +298,7 @@ def display_video(input_video):
         while True:
             start = time.time()
             success, frame = st.session_state['cam'].read()
+            print(f"{frame.shape}")
             if not success:
                 break
             cnt += 1
